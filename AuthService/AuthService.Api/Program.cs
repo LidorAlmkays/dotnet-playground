@@ -75,32 +75,33 @@ void SetupAuthentication()
 {
     builder.Services.AddAuthentication(options =>
        {
-           options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
-           options.DefaultForbidScheme = GoogleDefaults.AuthenticationScheme;
-           options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+           options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+           options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
        }
-       ).AddCookie()
-       .AddGoogle(GoogleDefaults.AuthenticationScheme, googleOptions =>
+       ).AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
+       .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
        {
            var (clientId, clientSecret) = Configuration.GetGoogleOAUTHConfig();
-           googleOptions.ClientId = clientId;
-           googleOptions.ClientSecret = clientSecret;
+           options.ClientId = clientId;
+           options.ClientSecret = clientSecret;
+           options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
        })
-    .AddJwtBearer(options =>
-       {
-           var (issuer, audience, secretKey) = Configuration.GetJWTConfig();
-           options.TokenValidationParameters = new TokenValidationParameters
-           {
-               ValidIssuer = issuer,
-               ValidAudience = audience,
-               IssuerSigningKeys = [new SymmetricSecurityKey(Convert.FromHexString(secretKey))],
-               ValidateIssuer = true,
-               ValidateLifetime = true,
-               ValidateAudience = true,
-               ValidateIssuerSigningKey = true,
+        .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+         {
+             var (issuer, audience, secretKey) = Configuration.GetJWTConfig();
+             options.TokenValidationParameters = new TokenValidationParameters
+             {
+                 ValidIssuer = issuer,
+                 ValidAudience = audience,
+                 IssuerSigningKeys = [new SymmetricSecurityKey(Convert.FromHexString(secretKey))],
+                 ValidateIssuer = true,
+                 ValidateLifetime = true,
+                 ValidateAudience = true,
+                 ValidateIssuerSigningKey = true,
 
-           };
-       });
+             };
+         }
+    );
 
     builder.Services.AddAuthorization();
 }
