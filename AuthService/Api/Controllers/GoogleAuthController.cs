@@ -24,7 +24,7 @@ namespace AuthService.Api.Controllers
         private readonly IUserAuthenticationManager _IUserAuthenticationManager = userAuthenticationManager;
         [Route("login")]
         [HttpGet]
-        public async Task GoogleLogin()
+        public async void GoogleLogin()
         {
             var props = new AuthenticationProperties
             {
@@ -35,7 +35,7 @@ namespace AuthService.Api.Controllers
         }
         [Route("register")]
         [HttpGet]
-        public async Task GoogleRegister()
+        public async void GoogleRegister()
         {
             var props = new AuthenticationProperties
             {
