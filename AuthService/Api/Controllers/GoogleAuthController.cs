@@ -1,27 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using AuthService.Api.Extensions;
-using AuthService.Application.UserAuthenticationManager;
+using AuthService.Application.GoogleUserAuthenticationManager;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace AuthService.Api.Controllers
 {
 
     [ApiController]
     [Route("[controller]")]
-    public class GoogleAuthController(ILogger<GoogleAuthController> logger, IUserAuthenticationManager userAuthenticationManager) : Controller
+    public class GoogleAuthController(ILogger<GoogleAuthController> logger, IGoogleUserAuthenticationManager userAuthenticationManager) : Controller
     {
         private readonly ILogger<GoogleAuthController> _logger = logger;
-        private readonly IUserAuthenticationManager _IUserAuthenticationManager = userAuthenticationManager;
+        private readonly IGoogleUserAuthenticationManager _IUserAuthenticationManager = userAuthenticationManager;
         [Route("login")]
         [HttpGet]
         public async void GoogleLogin()
@@ -48,21 +39,65 @@ namespace AuthService.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> GoogleLoginResponse()
         {
-            var userContext = await HttpContext.GetGoogleUserContextAsync().ConfigureAwait(false);
-            _logger.LogInformation("Processing Google login for {Email}", userContext.Email);
-            await _IUserAuthenticationManager.LoginUserGoogleAsync(userContext.Email, userContext.NameIdentifier).ConfigureAwait(false);
+            try
+            {
+                var userContext = await HttpContext.GetGoogleUserContextAsync().ConfigureAwait(false);
+                _logger.LogInformation("Processing Google login for {Email}", userContext.Email);
 
-            return Ok($"Successfully processed Google login for {userContext.Email}");
+                await _IUserAuthenticationManager.LoginUserGoogleAsync(userContext.Email, userContext.NameIdentifier).ConfigureAwait(false);
+
+                return Ok(new { Message = $"Successfully processed Google login for {userContext.Email}" });
+            }
+            catch (ArgumentNullException)
+            {
+                _logger.LogWarning("Google login failed: User with email not found.");
+                return NotFound(new { Message = "User not found." });
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning("Google login failed: {Message}", ex.Message);
+                return BadRequest(new { Message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning("Google login failed: {Message}", ex.Message);
+                return Unauthorized(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An unexpected error occurred during Google login.");
+                return StatusCode(500, new { Message = "An unexpected error occurred." });
+            }
         }
         [Route("register-response")]
         [HttpGet]
         public async Task<IActionResult> GoogleRegisterResponse()
         {
-            var userContext = await HttpContext.GetGoogleUserContextAsync().ConfigureAwait(false);
+            try
+            {
+                var userContext = await HttpContext.GetGoogleUserContextAsync().ConfigureAwait(false);
 
-            _logger.LogInformation("Processing Google registration for {Email}", userContext.Email);
-            await _IUserAuthenticationManager.RegisterUserGoogleAsync(userContext.GivenName, userContext.Email, userContext.NameIdentifier, Common.Enums.Role.User).ConfigureAwait(false);
-            return Ok($"Successfully processed Google register for {userContext.Email}");
+                _logger.LogInformation("Processing Google registration for {Email}", userContext.Email);
+
+                await _IUserAuthenticationManager.RegisterUserGoogleAsync(
+                    userContext.GivenName,
+                    userContext.Email,
+                    userContext.NameIdentifier,
+                    Common.Enums.Role.User
+                ).ConfigureAwait(false);
+
+                return Ok(new { Message = $"Successfully processed Google registration for {userContext.Email}" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning("Google registration failed: {Message}", ex.Message);
+                return BadRequest(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An unexpected error occurred during Google registration.");
+                return StatusCode(500, new { Message = "An unexpected error occurred." });
+            }
         }
 
     }

@@ -1,36 +1,40 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Text;
 using AuthService.Application.Jwt;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AuthService.Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class JwtAuthController(ILogger<JwtAuthController> logger, IJwtTokenManager jwtTokenManager) : Controller//(ILogger<JwtAuthController> logger) : Controller
+    public class JwtAuthController(IJwtTokenManager jwtTokenManager) : Controller//(ILogger<JwtAuthController> logger) : Controller
     {
-        private readonly ILogger<JwtAuthController> _logger = logger;
         private readonly IJwtTokenManager _jwtTokenManager = jwtTokenManager;
-        [Route("login")]
-        [HttpGet]
-        public IActionResult JwtLogin()
+
+        [Route("refresh")]
+        [HttpPost]
+        public async Task<IActionResult> RefreshToken()
         {
-            _logger.LogInformation("User trying to login");
-            // var (a, v) = _jwtTokenManager.IssueTokens("asfsafsaf");
-            // return Ok(new { a, v });
-            return Ok();
-        }
-        [Route("TEST")]
-        [HttpGet]
-        public async Task<IActionResult> TESTREMOVEAsync()
-        {
-            _logger.LogInformation("REMOVE ME IM TEST");
-            var result = await _jwtTokenManager.RefreshTokensAsync("asfsafsaf").ConfigureAwait(false);
-            return Ok();
+            var refreshTokenId = Request.Cookies["refreshToken"];
+
+            if (string.IsNullOrEmpty(refreshTokenId))
+            {
+                return BadRequest(new { error = "Refresh token is missing." });
+            }
+
+            var result = await _jwtTokenManager.RefreshTokensAsync(refreshTokenId).ConfigureAwait(false);
+
+            return result.Match<IActionResult>(
+                Right: Ok,
+                Left: error => error switch
+                {
+                    EncoderFallbackException or
+                    ArgumentNullException or
+                    NotSupportedException => BadRequest(new { error = error.Message }),
+                    SecurityTokenException => Unauthorized(new { error = error.Message }),
+                    _ => throw error
+                }
+            );
         }
     }
 }

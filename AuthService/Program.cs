@@ -1,4 +1,3 @@
-using AuthService.Application.UserAuthenticationManager;
 using AuthService.Api;
 using AuthService.Infrastructure.Encryption;
 using AuthService.Infrastructure;
@@ -14,6 +13,8 @@ using AuthService.Properties;
 using DotNetEnv;
 using AuthService.Application.Jwt;
 using AuthService.Infrastructure.TokenCache;
+using AuthService.Application.GoogleUserAuthenticationManager;
+using AuthService.Application.LocalUserAuthenticationManager;
 
 var builder = WebApplication.CreateBuilder(args);
 Env.Load();
@@ -47,7 +48,9 @@ void buildApplication(WebApplicationBuilder builder)
 {
     builder.Services.AddScoped<IJwtTokenManager, JwtTokenManager>();
     builder.Services.AddScoped<IPasswordEncryption, SaltAndPepperEncryption>();
-    builder.Services.AddScoped<IUserAuthenticationManager, UserAuthenticationWithEncryptionPassword>();
+    builder.Services.AddScoped<IGoogleUserAuthenticationManager, GoogleUserAuthentication>();
+    builder.Services.AddScoped<ILocalUserAuthenticationManager, LocalUserAuthentication>();
+
 }
 
 WebApplication buildApiLevel(WebApplicationBuilder builder)
