@@ -30,14 +30,7 @@ namespace AuthService.Properties
 
             DistributedCacheConnectionString = GetEnv("DISTRIBUTED_CACHE_CONNECTION_STRING");
 
-
-            var dbType = GetEnv("DB_TYPE");
-            var dbName = GetEnv("DB_NAME");
-            var dbPort = GetIntEnv("DB_PORT");
-            var dbUsername = GetEnv("DB_USERNAME");
-            var dbPassword = GetEnv("DB_PASSWORD");
-
-            DbConnectionString = $"Server={dbType}; Port={dbPort}; User Id={dbUsername}; Password={dbPassword}; Database={dbName}";
+            DbConnectionString = GetEnv("DB_CONNECTION_STRING");
 
             PepperLength = GetIntEnv("PEPPER_LENGTH");
             if (PepperLength <= 0)

@@ -27,11 +27,12 @@ namespace AuthService.Infrastructure.TokenCache
         public async Task<Either<Exception, RefreshTokenModel>> GetAsync(string refreshTokenId, CancellationToken cancellationToken = default)
         {
             RefreshTokenModel? refreshToken;
-            byte[]? refreshTokenJson = await _distributedCache.GetAsync(refreshTokenId, cancellationToken).ConfigureAwait(false);
-            if (refreshTokenJson == null)
-                return new KeyNotFoundException($"Refresh token with ID '{refreshTokenId}' was not found in cache.");
+
             try
             {
+                byte[]? refreshTokenJson = await _distributedCache.GetAsync(refreshTokenId, cancellationToken).ConfigureAwait(false);
+                if (refreshTokenJson == null)
+                    return new KeyNotFoundException($"Refresh token with ID '{refreshTokenId}' was not found in cache.");
                 refreshToken = JsonSerializer.Deserialize<RefreshTokenModel>(refreshTokenJson);
                 ArgumentNullException.ThrowIfNull(refreshToken);
             }
@@ -42,6 +43,10 @@ namespace AuthService.Infrastructure.TokenCache
             catch (JsonException ex)
             {
                 return new JsonException("Failed to deserialize refresh token for ID '{refreshTokenId}'.", ex);
+            }
+            catch (Exception)
+            {
+                return new Exception("Connection to redis failed");
             }
             return refreshToken;
         }
