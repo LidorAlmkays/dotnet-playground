@@ -1,17 +1,12 @@
 using System.Security.Cryptography;
+using AuthService.Properties;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 namespace AuthService.Infrastructure.Encryption
 {
-    public class SaltAndPepperEncryption : IPasswordEncryption
+    public class SaltAndPepperEncryption(AppConfig config) : IPasswordEncryption
     {
-        private readonly string _pepperLetters;
-        private readonly int _pepperLength;
-
-        public SaltAndPepperEncryption(string pepperLetters, int pepperLength)
-        {
-            _pepperLetters = pepperLetters;
-            _pepperLength = pepperLength;
-        }
+        private readonly string _pepperLetters = config.PepperLetters;
+        private readonly int _pepperLength = config.PepperLength;
 
         public (string encryptedPassword, string encryptionKey) EncryptionPassword(string password)
         {

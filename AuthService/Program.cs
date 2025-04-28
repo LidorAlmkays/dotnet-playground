@@ -10,9 +10,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using AuthService.Api.Controllers;
+using AuthService.Properties;
+using DotNetEnv;
+using AuthService.Application.Jwt;
+using AuthService.Infrastructure.TokenCache;
 
 var builder = WebApplication.CreateBuilder(args);
-Configuration.SetupConfig(builder);
+Env.Load();
+var appConfig = new AppConfig();
+builder.Services.AddSingleton(appConfig);
 SetupAuthentication();
 builder.AddServiceDefaults();
 builder.Services.AddOpenApi();
@@ -25,18 +31,22 @@ buildApiLevel(builder).Run();
 void buildInfrastructure(WebApplicationBuilder builder)
 {
     builder.Services.AddDbContext<AppDbContext>(optionsBuilder =>
-        optionsBuilder.UseNpgsql(Configuration.GetDBConnectionString(),
-         b => b.MigrationsAssembly("AuthService.Api")));
+        optionsBuilder.UseNpgsql(appConfig.DbConnectionString,
+         b => b.MigrationsAssembly(builder.Environment.ApplicationName)));
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = appConfig.DistributedCacheConnectionString;
+        options.InstanceName = "CacheInstance";
+    });
     builder.Services.AddScoped<IUserRepository, EFCoreUserRepository>();
+    builder.Services.AddScoped<IRefreshTokenStorage, RefreshTokenDistributedCache>();
+
 }
 
 void buildApplication(WebApplicationBuilder builder)
 {
-    builder.Services.AddScoped<IPasswordEncryption, SaltAndPepperEncryption>(provider =>
-     {
-         var (pepperLength, pepperLetters) = Configuration.GetSaltAndPepperConfig();
-         return new SaltAndPepperEncryption(pepperLetters, pepperLength);
-     });
+    builder.Services.AddScoped<IJwtTokenManager, JwtTokenManager>();
+    builder.Services.AddScoped<IPasswordEncryption, SaltAndPepperEncryption>();
     builder.Services.AddScoped<IUserAuthenticationManager, UserAuthenticationWithEncryptionPassword>();
 }
 
@@ -81,19 +91,17 @@ void SetupAuthentication()
        ).AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
        .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
        {
-           var (clientId, clientSecret) = Configuration.GetGoogleOAUTHConfig();
-           options.ClientId = clientId;
-           options.ClientSecret = clientSecret;
+           options.ClientId = appConfig.GoogleClientId;
+           options.ClientSecret = appConfig.GoogleClientSecret;
            options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
        })
         .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
          {
-             var (issuer, audience, secretKey) = Configuration.GetJWTConfig();
              options.TokenValidationParameters = new TokenValidationParameters
              {
-                 ValidIssuer = issuer,
-                 ValidAudience = audience,
-                 IssuerSigningKeys = [new SymmetricSecurityKey(Convert.FromHexString(secretKey))],
+                 ValidIssuer = appConfig.JwtIssuer,
+                 ValidAudience = appConfig.JwtAudience,
+                 IssuerSigningKeys = [new SymmetricSecurityKey(Convert.FromHexString(appConfig.JwtSecretKey))],
                  ValidateIssuer = true,
                  ValidateLifetime = true,
                  ValidateAudience = true,
@@ -112,7 +120,7 @@ void SetupSwagger()
 {
     options.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = Configuration.GetServiceName(),
+        Title = builder.Environment.ApplicationName,
         Version = "v1",
     });
     options.AddSecurityDefinition(name: JwtBearerDefaults.AuthenticationScheme,

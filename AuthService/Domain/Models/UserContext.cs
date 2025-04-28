@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace AuthService.Domain.Models
 {
-    public class UserContext
+    public record UserContext
     {
         public string NameIdentifier { get; set; } = default!;
         public string Name { get; set; } = default!;
