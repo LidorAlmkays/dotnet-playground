@@ -25,7 +25,16 @@ namespace AuthService.Api.Controllers
             var result = await _jwtTokenManager.RefreshTokensAsync(refreshTokenId).ConfigureAwait(false);
 
             return result.Match<IActionResult>(
-                Right: Ok,
+                Right: tokenIssuingModel =>
+                {
+                    // Store the new refresh token in the cookie
+                    Response.Cookies.Append("RefreshToken", tokenIssuingModel.RefreshToken.Id.ToString());
+
+                    // Store the new access token in the header
+                    Response.Headers.Append("Authorization", $"Bearer {tokenIssuingModel.AccessToken}");
+
+                    return Ok(new { Message = "Token refreshed successfully." });
+                },
                 Left: error => error switch
                 {
                     EncoderFallbackException or

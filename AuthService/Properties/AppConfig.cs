@@ -45,7 +45,7 @@ namespace AuthService.Properties
             AccessTokenLifetimeMinutes = GetIntEnv("JWT_ACCESS_TOKEN_LIFETIME_MINUTES");
             if (AccessTokenLifetimeMinutes <= 0)
                 throw new ArgumentOutOfRangeException("JWT_ACCESS_TOKEN_LIFETIME_MINUTES must be greater than 0.");
-            AccessTokenLifetimeMinutes = GetIntEnv("REFRESH_TOKEN_LIFETIME_DAYS");
+            RefreshTokenLifetimeDays = GetIntEnv("REFRESH_TOKEN_LIFETIME_DAYS");
             if (AccessTokenLifetimeMinutes <= 0)
                 throw new ArgumentOutOfRangeException("RefreshTokenLifetimeDays must be greater than 0.");
 

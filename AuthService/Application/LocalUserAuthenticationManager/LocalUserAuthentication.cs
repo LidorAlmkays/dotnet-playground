@@ -14,7 +14,7 @@ namespace AuthService.Application.LocalUserAuthenticationManager
         private readonly IUserRepository _userRepository = userRepository;
         private readonly IPasswordEncryption _passwordEncryption = passwordEncryption;
         ILogger<LocalUserAuthentication> _logger = logger;
-        public async Task LoginUserAsync(string userEmail, string password)
+        public async Task<Guid> ValidateUserLoginAsync(string userEmail, string password)
         {
             var user = await _userRepository.GetUserByEmailAsync(userEmail).ConfigureAwait(false);
             ArgumentNullException.ThrowIfNull(user);
@@ -25,6 +25,7 @@ namespace AuthService.Application.LocalUserAuthenticationManager
                 throw new InvalidOperationException($"Error: The provided password is incorrect for the user with email {userEmail}.");
             }
             _logger.LogInformation("Found local AuthMethod for user with email: {UserEmail}", userEmail);
+            return user.Id;
         }
 
         public async Task RegisterUserAsync(string name, string userEmail, string password, Role role)

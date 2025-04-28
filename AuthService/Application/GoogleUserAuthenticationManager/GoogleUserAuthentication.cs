@@ -4,6 +4,7 @@ using Common.Enums;
 using AuthService.Infrastructure.Encryption;
 using AuthService.Infrastructure.AuthMethodRepository;
 using Microsoft.Extensions.Logging;
+using AuthService.Application.Jwt;
 
 namespace AuthService.Application.GoogleUserAuthenticationManager
 {
@@ -14,8 +15,7 @@ namespace AuthService.Application.GoogleUserAuthenticationManager
         private readonly ILogger<GoogleUserAuthentication> _logger = logger;
         // private readonly IPasswordEncryption _passwordEncryption = passwordEncryption;
         // private readonly IAuthMethodRepository _authMethodRepository = authMethodRepository;
-
-        public async Task LoginUserGoogleAsync(string userEmail, string providerUserId)
+        public async Task<Guid> ValidateUserGoogleLoginAsync(string userEmail, string providerUserId)
         {
             var user = await _userRepository.GetUserByEmailAsync(userEmail).ConfigureAwait(false);
             ArgumentNullException.ThrowIfNull(user);
@@ -29,6 +29,7 @@ namespace AuthService.Application.GoogleUserAuthenticationManager
             }
 
             _logger.LogInformation("Found Google AuthMethod with UserId: {ProviderUserId}", providerUserId);
+            return user.Id;
         }
 
         public async Task RegisterUserGoogleAsync(string name, string userEmail, string providerUserId, Role role)

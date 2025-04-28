@@ -1,6 +1,7 @@
 using AuthService.Domain.Models;
 using AuthService.Infrastructure.TokenCache;
 using AuthService.Properties;
+using Common.DTOs;
 using LanguageExt;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -58,10 +59,10 @@ namespace AuthService.Application.Jwt
                 var storingResult = await _refreshTokenStorage.StoreAsync(refreshToken).ConfigureAwait(false);
                 return storingResult.Match<Either<Exception, TokenIssuingModel>>(Right: _ =>
                 {
-                    return new TokenIssuingModel()
+                    return new TokenIssuingModel
                     {
-                        RefreshToken = refreshToken,
-                        AccessToken = accessToken
+                        AccessToken = accessToken,
+                        RefreshToken = refreshToken
                     };
                 }, Left: error =>
                 {

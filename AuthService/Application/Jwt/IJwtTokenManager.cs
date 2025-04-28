@@ -1,15 +1,9 @@
 using AuthService.Domain.Models;
-using Common.CustomPracticalFunctional;
+using Common.DTOs;
 using LanguageExt;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace AuthService.Application.Jwt
 {
-
     //TODO: I KNOW I SHOULD CHANGE THE ERROS BEING THROWN TO CUSTOM ONES .... BUT I GET THE POINT
     public interface IJwtTokenManager
     {
@@ -36,8 +30,8 @@ namespace AuthService.Application.Jwt
         /// This method swallows any exceptions and returns an empty dictionary if validation fails. 
         /// Customize this behavior if more detailed error reporting is needed.
         /// </remarks>
-
         Dictionary<string, string> ExtractValidatedClaims(string token, bool validateLifetime = true);
+
         /// <summary>
         /// Issues a new pair of access and refresh tokens for the specified user.
         /// </summary>
@@ -53,7 +47,7 @@ namespace AuthService.Application.Jwt
         /// </description>
         /// </item>
         /// <item>
-        /// <term><see cref="TokenIssuingModel"/></term>
+        /// <term><see cref="TokenIssuingResponseDTO"/></term>
         /// <description>
         /// If both the access and refresh tokens were successfully generated and stored.
         /// </description>
@@ -85,6 +79,7 @@ namespace AuthService.Application.Jwt
         /// </para>
         /// </remarks>
         Task<Either<Exception, TokenIssuingModel>> IssueTokens(string email, Guid userId);
+
         /// <summary>
         /// Refreshes a pair of tokens using a valid, non-expired refresh token.
         /// </summary>
@@ -99,7 +94,7 @@ namespace AuthService.Application.Jwt
         /// </description>
         /// </item>
         /// <item>
-        /// <term><see cref="TokenIssuingModel"/></term>
+        /// <term><see cref="TokenIssuingResponseDTO"/></term>
         /// <description>
         /// If the refresh token is valid and new tokens were successfully generated and stored.
         /// </description>
@@ -134,7 +129,6 @@ namespace AuthService.Application.Jwt
         /// Any unhandled exceptions are rethrown and will bubble up to the caller.
         /// </para>
         /// </remarks>
-
         Task<Either<Exception, TokenIssuingModel>> RefreshTokensAsync(string oldRefreshTokenId);
     }
 }
