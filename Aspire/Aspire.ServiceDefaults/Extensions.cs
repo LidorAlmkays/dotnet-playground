@@ -48,8 +48,7 @@ public static class Extensions
 
     public static IHostApplicationBuilder ConfigureOpenTelemetry(this IHostApplicationBuilder builder, string[] metricNames)
     {
-        ArgumentNullException.ThrowIfNull(builder);
-        string? serviceName = Environment.GetEnvironmentVariable("SERVICE_NAME");
+        string? serviceName = builder.Environment.ApplicationName;
         ArgumentNullException.ThrowIfNull(serviceName);
 
         builder.Logging.AddOpenTelemetry(logging =>

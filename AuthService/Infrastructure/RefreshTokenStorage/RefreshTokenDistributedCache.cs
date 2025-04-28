@@ -55,7 +55,7 @@ namespace AuthService.Infrastructure.TokenCache
         {
             var options = new DistributedCacheEntryOptions()
            //    .SetSlidingExpiration(TimeSpan.FromMinutes(30))
-           .SetAbsoluteExpiration(refreshToken.ExpiresAt - refreshToken.CreatedAt);
+           .SetAbsoluteExpiration(refreshToken.ExpiresAt);
             try
             {
                 ArgumentNullException.ThrowIfNull(refreshToken);
