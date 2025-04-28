@@ -10,9 +10,10 @@ using System.Text;
 
 namespace AuthService.Application.Jwt
 {
-    public class JwtTokenManager(AppConfig appConfig, IRefreshTokenStorage refreshTokenStorage) : IJwtTokenManager
+    public class JwtTokenManager(ILogger<JwtTokenManager> logger, AppConfig appConfig, IRefreshTokenStorage refreshTokenStorage) : IJwtTokenManager
     {
         private readonly IRefreshTokenStorage _refreshTokenStorage = refreshTokenStorage;
+        private readonly ILogger<JwtTokenManager> _logger = logger;
         private Either<Exception, string> GenerateAccessToken(string email, Guid userId)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(appConfig.JwtSecretKey));
@@ -128,6 +129,7 @@ namespace AuthService.Application.Jwt
         {
             var handler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(appConfig.JwtSecretKey); // Your signing key here
+            var claims = new Dictionary<string, string>();
 
             try
             {
@@ -143,17 +145,22 @@ namespace AuthService.Application.Jwt
                     ClockSkew = TimeSpan.Zero // No clock skew
                 };
 
-                // Validate the token
-                var principal = handler.ValidateToken(token, parameters, out _);
+                // Try to parse the token
+                var jwtToken = handler.ReadToken(token) as JwtSecurityToken;
 
-                // Return claims if valid
-                return principal.Claims.ToDictionary(c => c.Type, c => c.Value);
+                // If the token is a valid JWT token, extract claims
+                if (jwtToken != null)
+                {
+                    claims = jwtToken.Claims.ToDictionary(c => c.Type, c => c.Value);
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Handle invalid token: could log or return empty dictionary or throw exception
-                return []; // Token is invalid
+                // Handle any errors that occurred during token parsing (invalid format, etc.)
+                _logger.LogWarning($"Error extracting claims from token: {ex.Message}");
             }
+
+            return claims;
         }
     }
 }

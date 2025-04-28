@@ -11,7 +11,7 @@ namespace AuthService.Api.Controllers
     {
         private readonly IJwtTokenManager _jwtTokenManager = jwtTokenManager;
 
-        [Route("refresh")]
+        [Route("refresh-token")]
         [HttpPost]
         public async Task<IActionResult> RefreshToken()
         {

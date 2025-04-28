@@ -18,18 +18,18 @@ namespace AuthService.Api.Controllers
 
         [Route("login")]
         [HttpPost]
-        public async Task<IActionResult> JwtLogin(UserLocalLoginRequestDTO userLocalLoginRequestDTO)
+        public async Task<IActionResult> JwtLogin([FromBody] UserLocalLoginRequestDTO userLocalLoginRequestDTO)
         {
             _logger.LogInformation("User trying to login");
 
             try
             {
                 Guid userId = await _localUserAuthentication.ValidateUserLoginAsync(
-                    userLocalLoginRequestDTO.UserEmail,
+                    userLocalLoginRequestDTO.Email,
                     userLocalLoginRequestDTO.Password
                 ).ConfigureAwait(false);
 
-                return (await _jwtTokenManager.IssueTokens(userLocalLoginRequestDTO.UserEmail, userId).ConfigureAwait(false)).Match<IActionResult>(
+                return (await _jwtTokenManager.IssueTokens(userLocalLoginRequestDTO.Email, userId).ConfigureAwait(false)).Match<IActionResult>(
                    Right: tokenIssuingModel =>
                 {
                     // Set the Access Token in the Authorization header
@@ -45,7 +45,7 @@ namespace AuthService.Api.Controllers
                     };
                     Response.Cookies.Append("RefreshToken", tokenIssuingModel.RefreshToken.Id.ToString(), cookieOptions);
 
-                    _logger.LogInformation("Login successful, tokens issued for {Email}", userLocalLoginRequestDTO.UserEmail);
+                    _logger.LogInformation("Login successful, tokens issued for {Email}", userLocalLoginRequestDTO.Email);
 
                     return Ok(new { Message = "Login successful." });
                 },
@@ -61,7 +61,7 @@ namespace AuthService.Api.Controllers
             }
             catch (ArgumentNullException)
             {
-                _logger.LogWarning("Login failed: User with email {Email} not found.", userLocalLoginRequestDTO.UserEmail);
+                _logger.LogWarning("Login failed: User with email {Email} not found.", userLocalLoginRequestDTO.Email);
                 return NotFound(new { Message = "User not found." });
             }
             catch (ArgumentException ex)
@@ -83,7 +83,7 @@ namespace AuthService.Api.Controllers
         }
         [Route("register")]
         [HttpPost]
-        public async Task<IActionResult> RegisterLogin(UserLocalRegisterRequestDTO userLocalRegisterRequestDTO)
+        public async Task<IActionResult> RegisterLogin([FromBody] UserLocalRegisterRequestDTO userLocalRegisterRequestDTO)
         {
             _logger.LogInformation("User trying to register");
 

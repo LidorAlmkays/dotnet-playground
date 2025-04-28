@@ -37,7 +37,7 @@ void buildInfrastructure(WebApplicationBuilder builder)
     builder.Services.AddStackExchangeRedisCache(options =>
     {
         options.Configuration = appConfig.DistributedCacheConnectionString;
-        options.InstanceName = "CacheInstance";
+        options.InstanceName = builder.Environment.ApplicationName + "-";
     });
     builder.Services.AddScoped<IUserRepository, EFCoreUserRepository>();
     builder.Services.AddScoped<IRefreshTokenStorage, RefreshTokenDistributedCache>();
