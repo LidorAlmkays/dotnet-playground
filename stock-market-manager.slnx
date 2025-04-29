@@ -11,10 +11,8 @@
 <Project Path="Aspire/Aspire.Apphost/Aspire.Apphost.csproj" />
 <Project Path="Aspire/Aspire.ServiceDefaults/Aspire.ServiceDefaults.csproj" />
 </Folder>
-<Folder Name="/AuthService/">
-<Project Path="AuthService/AuthService.csproj" />
-</Folder>
 <Project Path="docker-compose.dcproj" Id="42e45217-90d4-4501-9b00-50145bd9bacb">
-<Build />
 </Project>
+<Project Path="AuthService/AuthService.csproj" />
+<Project Path="Gateway/Gateway.csproj" />
 </Solution>

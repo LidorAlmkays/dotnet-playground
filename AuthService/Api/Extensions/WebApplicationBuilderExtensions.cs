@@ -13,7 +13,7 @@ namespace AuthService.Api.Extensions
 {
     public static class WebApplicationBuilderExtensions
     {
-        public static void SetupAuthentication(this WebApplicationBuilder builder, AppConfig appConfig)
+        public static void SetupAuthentication(this WebApplicationBuilder builder)
         {
             builder.Services.AddAuthentication(options =>
                {
@@ -23,17 +23,17 @@ namespace AuthService.Api.Extensions
                ).AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
                .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
                {
-                   options.ClientId = appConfig.GoogleClientId;
-                   options.ClientSecret = appConfig.GoogleClientSecret;
+                   options.ClientId = AppConfig.GoogleClientId;
+                   options.ClientSecret = AppConfig.GoogleClientSecret;
                    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                })
                 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
                  {
                      options.TokenValidationParameters = new TokenValidationParameters
                      {
-                         ValidIssuer = appConfig.JwtIssuer,
-                         ValidAudience = appConfig.JwtAudience,
-                         IssuerSigningKeys = [new SymmetricSecurityKey(Convert.FromHexString(appConfig.JwtSecretKey))],
+                         ValidIssuer = AppConfig.JwtIssuer,
+                         ValidAudience = AppConfig.JwtAudience,
+                         IssuerSigningKeys = [new SymmetricSecurityKey(Convert.FromHexString(AppConfig.JwtSecretKey))],
                          ValidateIssuer = true,
                          ValidateLifetime = true,
                          ValidateAudience = true,

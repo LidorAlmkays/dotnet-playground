@@ -3,10 +3,10 @@ using AuthService.Properties;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 namespace AuthService.Infrastructure.Encryption
 {
-    public class SaltAndPepperEncryption(AppConfig config) : IPasswordEncryption
+    public class SaltAndPepperEncryption : IPasswordEncryption
     {
-        private readonly string _pepperLetters = config.PepperLetters;
-        private readonly int _pepperLength = config.PepperLength;
+        private static string _pepperLetters => AppConfig.PepperLetters;
+        private static int _pepperLength => AppConfig.PepperLength;
 
         public (string encryptedPassword, string encryptionKey) EncryptionPassword(string password)
         {
@@ -56,7 +56,7 @@ namespace AuthService.Infrastructure.Encryption
             return hashedPassword;
         }
 
-        private string GeneratePepper()
+        private static string GeneratePepper()
         {
             string result = "";
 
@@ -74,7 +74,7 @@ namespace AuthService.Infrastructure.Encryption
             return RandomNumberGenerator.GetBytes(128 / 8); // divide by 8 to convert bits to bytes
         }
 
-        private string ConvertIndexArrayToPepperWord(int[] indexArray)
+        private static string ConvertIndexArrayToPepperWord(int[] indexArray)
         {
             string word = "";
             foreach (int i in indexArray)
@@ -84,7 +84,7 @@ namespace AuthService.Infrastructure.Encryption
             return word;
         }
 
-        private int[] ConvertToPepperArray(int value)
+        private static int[] ConvertToPepperArray(int value)
         {
             int[] array = new int[_pepperLength];
             int max = _pepperLetters.Length;

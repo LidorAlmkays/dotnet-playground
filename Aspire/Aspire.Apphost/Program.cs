@@ -16,10 +16,13 @@ var cache = builder.AddRedis(
     password: builder.AddParameter("redis-password", "redis_password")
     ).WithBindMount(source: redisVolumeDir, target: "/data");
 
-builder.AddProject<Projects.AuthService>("AuthService")
+var authService = builder.AddProject<Projects.AuthService>("AuthService")
                 .WithReference(postgres)
                 .WithReference(cache)
                 .WaitFor(postgres)
                 .WaitFor(cache);
+
+builder.AddProject<Projects.Gateway>("reverseproxy")
+    .WithReference(authService);
 
 builder.Build().Run();

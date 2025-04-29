@@ -7,7 +7,7 @@ namespace AuthService.Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class JwtAuthController(IJwtTokenManager jwtTokenManager) : Controller//(ILogger<JwtAuthController> logger) : Controller
+    public class JwtController(IJwtTokenManager jwtTokenManager) : Controller//(ILogger<JwtAuthController> logger) : Controller
     {
         private readonly IJwtTokenManager _jwtTokenManager = jwtTokenManager;
 

@@ -9,9 +9,9 @@ using Microsoft.IdentityModel.Tokens;
 namespace AuthService.Api.Controllers
 {
     [Route("[controller]")]
-    public class LocalAuthController(ILogger<LocalAuthController> logger, ILocalUserAuthenticationManager localUserAuthenticationManager, IJwtTokenManager jwtTokenManager) : Controller
+    public class LocalController(ILogger<LocalController> logger, ILocalUserAuthenticationManager localUserAuthenticationManager, IJwtTokenManager jwtTokenManager) : Controller
     {
-        private readonly ILogger<LocalAuthController> _logger = logger;
+        private readonly ILogger<LocalController> _logger = logger;
         private readonly ILocalUserAuthenticationManager _localUserAuthentication = localUserAuthenticationManager;
 
         private readonly IJwtTokenManager _jwtTokenManager = jwtTokenManager;

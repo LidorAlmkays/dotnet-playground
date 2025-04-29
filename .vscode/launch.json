@@ -11,10 +11,16 @@
             "projectPath": "${workspaceFolder}/Aspire/Aspire.Apphost/Aspire.Apphost.csproj"
         },
         {
-            "name": "C#: `AuthService Debug",
+            "name": "C#: AuthService Debug",
             "type": "dotnet",
             "request": "launch",
             "projectPath": "${workspaceFolder}/AuthService/AuthService.csproj"
+        },
+        {
+            "name": "C#: Gateway Debug",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/Gateway/Gateway.csproj"
         }
     ]
 }

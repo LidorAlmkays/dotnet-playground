@@ -10,13 +10,13 @@ using System.Text;
 
 namespace AuthService.Application.Jwt
 {
-    public class JwtTokenManager(ILogger<JwtTokenManager> logger, AppConfig appConfig, IRefreshTokenStorage refreshTokenStorage) : IJwtTokenManager
+    public class JwtTokenManager(ILogger<JwtTokenManager> logger, IRefreshTokenStorage refreshTokenStorage) : IJwtTokenManager
     {
         private readonly IRefreshTokenStorage _refreshTokenStorage = refreshTokenStorage;
         private readonly ILogger<JwtTokenManager> _logger = logger;
-        private Either<Exception, string> GenerateAccessToken(string email, Guid userId)
+        private static Either<Exception, string> GenerateAccessToken(string email, Guid userId)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(appConfig.JwtSecretKey));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(AppConfig.JwtSecretKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new List<Claim>
@@ -24,11 +24,16 @@ namespace AuthService.Application.Jwt
                     new(JwtRegisteredClaimNames.Sub, userId.ToString()),
                     new(JwtRegisteredClaimNames.Email, email),
                 };
+            int accessTokenLifetimeMinutes = AppConfig.AccessTokenLifetimeMinutes;
+            if (accessTokenLifetimeMinutes < 0)
+            {
+                accessTokenLifetimeMinutes = 0;
+            }
             var token = new JwtSecurityToken(
-                issuer: appConfig.JwtIssuer,
-                audience: appConfig.JwtAudience,
+                issuer: AppConfig.JwtIssuer,
+                audience: AppConfig.JwtAudience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(appConfig.AccessTokenLifetimeMinutes),
+                expires: DateTime.UtcNow.AddMinutes(accessTokenLifetimeMinutes),
                 signingCredentials: credentials
             );
             try
@@ -42,12 +47,17 @@ namespace AuthService.Application.Jwt
             }
         }
 
-        private RefreshTokenModel GenerateRefreshToken(string accessToken)
+        private static RefreshTokenModel GenerateRefreshToken(string accessToken)
         {
+            int refreshTokenLifetimeDays = AppConfig.RefreshTokenLifetimeDays;
+            if (refreshTokenLifetimeDays < 0)
+            {
+                refreshTokenLifetimeDays = 0;
+            }
             var refreshToken = new RefreshTokenModel
             {
                 AccessToken = accessToken,
-                ExpiresAt = DateTime.UtcNow.AddDays(appConfig.RefreshTokenLifetimeDays)
+                ExpiresAt = DateTime.UtcNow.AddDays(refreshTokenLifetimeDays)
             };
             return refreshToken;
         }
@@ -128,7 +138,7 @@ namespace AuthService.Application.Jwt
         public Dictionary<string, string> ExtractValidatedClaims(string token, bool validateLifetime = true)
         {
             var handler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(appConfig.JwtSecretKey); // Your signing key here
+            var key = Encoding.UTF8.GetBytes(AppConfig.JwtSecretKey); // Your signing key here
             var claims = new Dictionary<string, string>();
 
             try
@@ -139,8 +149,8 @@ namespace AuthService.Application.Jwt
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuer = true,
                     ValidateAudience = true,
-                    ValidIssuer = appConfig.JwtIssuer,
-                    ValidAudience = appConfig.JwtAudience,
+                    ValidIssuer = AppConfig.JwtIssuer,
+                    ValidAudience = AppConfig.JwtAudience,
                     ValidateLifetime = validateLifetime,
                     ClockSkew = TimeSpan.Zero // No clock skew
                 };

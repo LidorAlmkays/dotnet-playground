@@ -3,7 +3,6 @@ using AuthService.Infrastructure;
 using AuthService.Infrastructure.UserRepository;
 using Microsoft.EntityFrameworkCore;
 using AuthService.Properties;
-using DotNetEnv;
 using AuthService.Application.Jwt;
 using AuthService.Infrastructure.TokenCache;
 using AuthService.Application.GoogleUserAuthenticationManager;
@@ -11,10 +10,7 @@ using AuthService.Application.LocalUserAuthenticationManager;
 using AuthService.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
-Env.Load();
-var appConfig = new AppConfig();
-builder.Services.AddSingleton(appConfig);
-builder.SetupAuthentication(appConfig);
+builder.SetupAuthentication();
 builder.AddServiceDefaults();
 builder.Services.AddOpenApi();
 buildInfrastructure(builder);
@@ -26,12 +22,12 @@ buildApiLevel(builder).Run();
 void buildInfrastructure(WebApplicationBuilder builder)
 {
     builder.Services.AddDbContext<AppDbContext>(optionsBuilder =>
-        optionsBuilder.UseNpgsql(appConfig.DbConnectionString,
+        optionsBuilder.UseNpgsql(AppConfig.DbConnectionString,
          b => b.MigrationsAssembly(builder.Environment.ApplicationName)));
 
     builder.Services.AddStackExchangeRedisCache(options =>
     {
-        options.Configuration = appConfig.DistributedCacheConnectionString;
+        options.Configuration = AppConfig.DistributedCacheConnectionString;
         options.InstanceName = builder.Environment.ApplicationName + "-";
     });
     builder.Services.AddScoped<IUserRepository, EFCoreUserRepository>();

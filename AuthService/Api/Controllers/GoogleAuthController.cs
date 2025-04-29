@@ -1,23 +1,25 @@
 using AuthService.Api.Extensions;
 using AuthService.Application.GoogleUserAuthenticationManager;
 using AuthService.Application.Jwt;
-using Common.DTOs;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-
+using Common.Enums;
+using AuthService.Properties;
 namespace AuthService.Api.Controllers
 {
 
     [ApiController]
     [Route("[controller]")]
-    public class GoogleAuthController(ILogger<GoogleAuthController> logger, IGoogleUserAuthenticationManager userAuthenticationManager, IJwtTokenManager jwtTokenManager) : Controller
+    public class GoogleController(ILogger<GoogleController> logger, IGoogleUserAuthenticationManager userAuthenticationManager, IJwtTokenManager jwtTokenManager) : Controller
     {
-        private readonly ILogger<GoogleAuthController> _logger = logger;
+        private readonly ILogger<GoogleController> _logger = logger;
         private readonly IGoogleUserAuthenticationManager _IUserAuthenticationManager = userAuthenticationManager;
         private readonly IJwtTokenManager _jwtTokenManager = jwtTokenManager;
+        private static Uri _redirectUri => AppConfig.GoogleRedirectUri
+            ?? throw new InvalidOperationException($"GOOGLE_REDIRECT_URI environment variable is missing."); // Update this to your actual redirect URI
 
         [Route("login")]
         [HttpGet]
@@ -25,7 +27,7 @@ namespace AuthService.Api.Controllers
         {
             var props = new AuthenticationProperties
             {
-                RedirectUri = "/GoogleAuth/login-response"
+                RedirectUri = _redirectUri + "/login-response"
             };
             await HttpContext.ChallengeAsync(GoogleDefaults.AuthenticationScheme, props)
                              .ConfigureAwait(false);
@@ -36,7 +38,7 @@ namespace AuthService.Api.Controllers
         {
             var props = new AuthenticationProperties
             {
-                RedirectUri = "/GoogleAuth/register-response"
+                RedirectUri = _redirectUri + "/register-response"
             };
             await HttpContext.ChallengeAsync(GoogleDefaults.AuthenticationScheme, props)
                              .ConfigureAwait(false);
@@ -117,7 +119,7 @@ namespace AuthService.Api.Controllers
                     userContext.GivenName,
                     userContext.Email,
                     userContext.NameIdentifier,
-                    Common.Enums.Role.User
+                    Role.User
                 ).ConfigureAwait(false);
 
                 return Ok(new { Message = $"Successfully processed Google registration for {userContext.Email}" });
