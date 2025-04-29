@@ -14,5 +14,6 @@
 <Project Path="docker-compose.dcproj" Id="42e45217-90d4-4501-9b00-50145bd9bacb">
 </Project>
 <Project Path="AuthService/AuthService.csproj" />
+<Project Path="StockInfoExtractorService/StockInfoExtractorService.csproj" />
 <Project Path="Gateway/Gateway.csproj" />
 </Solution>
