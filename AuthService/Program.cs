@@ -9,13 +9,20 @@ using AuthService.Application.GoogleUserAuthenticationManager;
 using AuthService.Application.LocalUserAuthenticationManager;
 using AuthService.Api.Extensions;
 
+// var builder1 = Host.CreateEmptyApplicationBuilder(settings: null);
+// builder1.Services
+//          .AddMcpServer()
+//          .WithStdioServerTransport()
+//          .WithToolsFromAssembly();
+// await builder1.Build().RunAsync().ConfigureAwait(false);
+
 var builder = WebApplication.CreateBuilder(args);
 builder.SetupAuthentication();
 builder.AddServiceDefaults();
 builder.Services.AddOpenApi();
 buildInfrastructure(builder);
 buildApplication(builder);
-buildApiLevel(builder).Run();
+await buildApiLevel(builder).RunAsync().ConfigureAwait(false);
 
 
 
@@ -50,6 +57,7 @@ WebApplication buildApiLevel(WebApplicationBuilder builder)
 
     builder.Services.AddEndpointsApiExplorer();
     builder.SetupSwaggerConfig();
+    builder.SetupMCP();
     var app = builder.Build();
 
     // Configure the HTTP request pipeline.

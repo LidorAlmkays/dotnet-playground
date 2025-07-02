@@ -1,0 +1,13 @@
+{
+    "servers": {
+        "my-mcp-server-e0aa0b60": {
+            "type": "stdio",
+            "command": "dotnet",
+            "args": [
+                "run",
+                "--project",
+                "C:\\Users\\lidor\\Desktop\\dotnet-playground\\AuthService\\AuthService.csproj"
+            ]
+        }
+    }
+}

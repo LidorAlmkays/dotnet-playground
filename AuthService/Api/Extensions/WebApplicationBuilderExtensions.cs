@@ -4,10 +4,6 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace AuthService.Api.Extensions
 {
@@ -91,5 +87,15 @@ namespace AuthService.Api.Extensions
             });
         });
         }
+
+        public static void SetupMCP(this WebApplicationBuilder builder)
+        {
+            builder.Services
+                .AddMcpServer()
+                .WithStdioServerTransport()
+                .WithToolsFromAssembly();
+        }
+
+
     }
 }
